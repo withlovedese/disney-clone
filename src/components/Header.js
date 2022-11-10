@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { signInWithPopup, auth, provider } from '../firebase'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectUserName, selectUserEmail, selectUserPhoto, login, logout } from '../features/user/userSlice'
+import { selectUserName, selectUserPhoto, login, logout } from '../features/user/userSlice'
 
 const Header = (props) => {
 
@@ -12,19 +12,15 @@ const Header = (props) => {
     const userName = useSelector(selectUserName);
     const userPhoto = useSelector(selectUserPhoto);
 
-    const setUser = (user) => {
-        dispatch(login({
-            name: user.displayName,
-            email: user.email,
-            photo: user.photoURL,
-        }))
-    }
-
     const signIn = () => {
         //google authentication stuff
         signInWithPopup(auth, provider)
         .then((result) => {
-            setUser(result.user)
+            dispatch(login({
+                name: result.user.displayName,
+                email: result.user.email,
+                photo: result.user.photoURL,
+            }))
         })
         .catch((error) => {
             alert(error.message)
@@ -36,18 +32,22 @@ const Header = (props) => {
             dispatch(logout())
             navigate('/')
         }).catch((error) => {
-            console.log(error);
+            alert(error.message);
         })
     }
 
     useEffect(() => {
       auth.onAuthStateChanged(async (authUser) => {
             if (authUser){
-                setUser(authUser)
+                dispatch(login({
+                    name: authUser.displayName,
+                    email: authUser.email,
+                    photo: authUser.photoURL,
+                }))
                 navigate('/home');
             }
       })
-    }, [userName])
+    }, [userName, navigate, dispatch])
     
 
   return (
